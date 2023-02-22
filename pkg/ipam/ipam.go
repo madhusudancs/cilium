@@ -109,9 +109,7 @@ func NewIPAM(nodeAddressing types.NodeAddressing, c Configuration, owner Owner, 
 		config:           c,
 		owner:            map[string]string{},
 		expirationTimers: map[string]string{},
-		blacklist: IPBlacklist{
-			ips: map[string]string{},
-		},
+		excludedIPs:      map[string]string{},
 	}
 
 	switch c.IPAMMode() {
@@ -171,13 +169,19 @@ func NewIPAM(nodeAddressing types.NodeAddressing, c Configuration, owner Owner, 
 	return ipam
 }
 
-// BlacklistIP ensures that a certain IP is never allocated. It is preferred to
-// use BlacklistIP() instead of allocating the IP as the allocation block can
-// change and suddenly cover the IP to be blacklisted.
-func (ipam *IPAM) BlacklistIP(ip net.IP, owner string, pool Pool) {
+// ExcludeIP ensures that a certain IP is never allocated. It is preferred to
+// use this method instead of allocating the IP as the allocation block can
+// change and suddenly cover the IP to be excluded.
+func (ipam *IPAM) ExcludeIP(ip net.IP, owner string, pool Pool) {
 	ipam.allocatorMutex.Lock()
-	ipam.blacklist.ips[ip.String()] = owner
+	ipam.excludedIPs[ip.String()] = owner
 	ipam.allocatorMutex.Unlock()
+}
+
+// isIPExcluded is used to check if a particular IP is excluded from being allocated.
+func (ipam *IPAM) isIPExcluded(ip net.IP) bool {
+	_, ok := ipam.excludedIPs[ip.String()]
+	return ok
 }
 
 // PoolOrDefault returns the default pool if no pool is specified.

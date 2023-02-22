@@ -71,8 +71,8 @@ func (ipam *IPAM) allocateIP(ip net.IP, owner string, pool Pool, needSyncUpstrea
 	ipam.allocatorMutex.Lock()
 	defer ipam.allocatorMutex.Unlock()
 
-	if ipam.blacklist.Contains(ip) {
-		err = fmt.Errorf("IP %s is blacklisted, owned by %s", ip.String(), owner)
+	if ipam.isIPExcluded(ip) {
+		err = fmt.Errorf("IP %s is excluded, owned by %s", ip.String(), owner)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (ipam *IPAM) allocateNextFamily(family Family, owner string, pool Pool, nee
 			return
 		}
 
-		if !ipam.blacklist.Contains(result.IP) {
+		if !ipam.isIPExcluded(result.IP) {
 			log.WithFields(logrus.Fields{
 				"ip":    result.IP.String(),
 				"owner": owner,
@@ -158,10 +158,10 @@ func (ipam *IPAM) allocateNextFamily(family Family, owner string, pool Pool, nee
 			return
 		}
 
-		// The allocated IP is blacklisted, do not use it. The
-		// blacklisted IP is now allocated so it won't be allocated in
-		// the next iteration.
-		ipam.owner[result.IP.String()] = fmt.Sprintf("%s (blacklisted)", owner)
+		// The allocated IP is excluded, do not use it. The excluded IP
+		// is now allocated so it won't be allocated in the next
+		// iteration.
+		ipam.owner[result.IP.String()] = fmt.Sprintf("%s (excluded)", owner)
 	}
 }
 

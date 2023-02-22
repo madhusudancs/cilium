@@ -70,14 +70,14 @@ func (s *IPAMSuite) TestLock(c *C) {
 	c.Assert(err, IsNil)
 }
 
-func (s *IPAMSuite) TestBlackList(c *C) {
+func (s *IPAMSuite) TestExcludeIP(c *C) {
 	fakeAddressing := fake.NewNodeAddressing()
 	ipam := NewIPAM(fakeAddressing, &testConfiguration{}, &ownerMock{}, &ownerMock{}, &mtuMock, nil)
 
 	ipv4 := fakeIPv4AllocCIDRIP(fakeAddressing)
 	ipv4 = ipv4.Next()
 
-	ipam.BlacklistIP(ipv4.AsSlice(), "test", PoolDefault)
+	ipam.ExcludeIP(ipv4.AsSlice(), "test", PoolDefault)
 	err := ipam.AllocateIP(ipv4.AsSlice(), "test", PoolDefault)
 	c.Assert(err, Not(IsNil))
 	ipam.ReleaseIP(ipv4.AsSlice(), PoolDefault)
@@ -85,7 +85,7 @@ func (s *IPAMSuite) TestBlackList(c *C) {
 	ipv6 := fakeIPv6AllocCIDRIP(fakeAddressing)
 	ipv6 = ipv6.Next()
 
-	ipam.BlacklistIP(ipv6.AsSlice(), "test", PoolDefault)
+	ipam.ExcludeIP(ipv6.AsSlice(), "test", PoolDefault)
 	err = ipam.AllocateIP(ipv6.AsSlice(), "test", PoolDefault)
 	c.Assert(err, Not(IsNil))
 	ipam.ReleaseIP(ipv6.AsSlice(), PoolDefault)
