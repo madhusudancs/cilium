@@ -75,7 +75,6 @@
         "go.sum"
       ],
       "matchUpdateTypes": [
-        "major",
         "minor",
         "digest",
         "patch",
